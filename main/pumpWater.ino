@@ -1,21 +1,10 @@
 /* ----- PUMP ----- */
 /* Turning on pump */
-void pump_on() {
-  analogWrite(PUMP_P1, pump_power);
+void pump_on(uint8_t pump_pwm) {
+  analogWrite(PUMP_P1, pump_pwm);
   digitalWrite(PUMP_P2, LOW);
-}
 
-
-/* Setting power for pump */
-// NEW CODE (mensaje): Encontrar mejor valor de funcionamiento y solo usar ese
-void pump_receivedValue(uint8_t pump_pwm) {
-  if (pump_pwm < 0) {
-    pump_pwm = 0;
-  } else if (pump_pwm > 150) {
-    pump_pwm = 150;
-  }
-
-  pump_power = pump_pwm;
+  pump_signal = true;
 }
 
 
@@ -28,7 +17,6 @@ void pump_ending(const uint8_t PUMP_PWMENDING) {
 
 
 /* Turning off pump */
-// NEW CODE
 void pump_off() {
   analogWrite(PUMP_P1, 0);
   

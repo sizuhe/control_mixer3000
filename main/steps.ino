@@ -15,8 +15,8 @@ void step_init(const uint16_t maxSpeed) {
 void step_receivedValue(uint16_t step_rpm) {
   if (step_rpm < 200) {
     step_rpm = 200;
-  } else if (step_rpm > 400) {
-    step_rpm = 400;
+  } else if (step_rpm > 300) {
+    step_rpm = 300;
   }
 
   step_speed = step_rpm * 3.33;
@@ -43,7 +43,7 @@ void step_off() {
 void motor2_goDown(){
   digitalWrite(STEP_ENA_2, LOW);
   
-  STEP_MOTOR_HEIGHT.moveTo(-2800);
+  STEP_MOTOR_HEIGHT.moveTo(-2500);
   STEP_MOTOR_HEIGHT.runToPosition();
 
   digitalWrite(STEP_ENA_2, HIGH);

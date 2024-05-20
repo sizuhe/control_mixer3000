@@ -1,7 +1,7 @@
 #include "HX711.h"
 #include <AccelStepper.h>
-// #include <OneWire.h>                
-// #include <DallasTemperature.h>
+#include <OneWire.h>                
+#include <DallasTemperature.h>
  
 
 // ----- PIN VARIABLES -----
@@ -65,8 +65,8 @@ unsigned long previousTime = 0;
 AccelStepper STEP_MOTOR_MIX(1, STEP_PIN, STEP_DIR); 
 AccelStepper STEP_MOTOR_HEIGHT(1, STEP_PIN_2, STEP_DIR_2);
 
-// OneWire ourWire(TEMP_PIN);
-// DallasTemperature TEMP_SENSOR(&ourWire);
+OneWire ourWire(TEMP_PIN);
+DallasTemperature TEMP_SENSOR(&ourWire);
 
 /*
 ----- CAUDALS -----
@@ -86,7 +86,7 @@ AccelStepper STEP_MOTOR_HEIGHT(1, STEP_PIN_2, STEP_DIR_2);
  
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // Load cell config
   LOAD_CELL.begin(DOUT, CLK);
@@ -108,9 +108,9 @@ void setup() {
   digitalWrite(STEP_ENA_2, HIGH);
 
   // Temperature
-  // TEMP_SENSOR.begin();
-  // TEMP_SENSOR.setResolution(9);
-  // TEMP_SENSOR.setWaitForConversion(false);
+  TEMP_SENSOR.begin();
+  TEMP_SENSOR.setResolution(9);
+  TEMP_SENSOR.setWaitForConversion(false);
 }
 
 
@@ -118,95 +118,23 @@ void loop() {
   uint16_t dataSerial = 0;
   uint16_t dataValue = 0;
   uint8_t dataCode = 0;
-  float pump_endingValue = loadCell_weightDefined - 30.0;
-  float pump_finishValue = loadCell_weightDefined - 4.0;    // Minus max caudal value
+  uint16_t pump_endingValue_signal = loadCell_weightDefined - 30;
+  uint16_t pump_finishValue_signal = loadCell_weightDefined - 3;    // Minus max caudal value
 
-  /*----- SERIAL READING ----- */
-  /* Reads a 5 digit number and splits it into two values: DATACODE (0:1) and DATAVALUE (2:4).
-      Eg: 25600 read as 25 (CODE) and 600 (VALUE) 
-
-    Serial.parseInt returns a Zero after reading, this is due to newline ('\n') or a carriage
-    return ('\r') value at the end on the line.
-    Serial.read kills its 1 second wait, improving code performance.
-    This code may be memory optimized if only Serial.read was used. 
-  */
-  // if (Serial.available() > 0) {
-  //   dataSerial = Serial.parseInt();
-  //   if (Serial.read() == '\n'){}    // Revisar configuracion del Serial
-
-  //   if (dataSerial > 99){
-  //     dataCode = dataSerial / 1000;
-  //     dataValue = dataSerial % 1000;
-  //   } else {
-  //     dataCode = dataSerial;
-  //   }
-
-  //   switch (dataCode) {
-  //     case 99:
-  //       step_off();
-  //       pump_off();
-  //       motor2_gouP();
-  //       break;
-
-  //     case 10:
-  //       loadCell_calibration(dataValue, 100);    // Receives (KNOWN_WEIGHT, TARE_VALUE)
-  //       break;
-
-  //     case 11:
-  //       loadCell_tare(100);
-  //       break;
-
-  //     case 20:
-  //       pump_receivedValue(dataValue);
-  //       pump_on();
-  //       break;
-
-  //     case 21:
-  //       pump_receivedValue(0);
-  //       pump_off();
-  //       break;
-
-  //     case 22:
-  //       loadCell_weightDefined = dataValue;
-  //       pump_signal = true;
-  //       break;
-
-  //     case 30:
-  //       motor2_goDown();
-  //       step_receivedValue(dataValue);
-  //       stepValue = dataValue;
-  //       step_signal = true;
-  //       break;
-
-  //     case 31:
-  //       step_off();
-  //       break;
-      
-  //     case 40:
-  //       motor2_goDown();
-  //       break;
-      
-  //     case 41:
-  //       motor2_gouP();
-  //       break;
-  //   }
-  // }
-    
-  /* ----- CORRECTS LOADCELL MEASURES HIGHER VALUES DUE TO NOISE SIGNAL ----- */
-  // If change in measure is more than Caudal dont count it
-  // if ((loadCell_weightMeasured - loadCell_weightMeasured_compare) > 50) {
-  //   loadCell_weightDefined_real = 0;
-  // }
-  // else{
-  //   loadCell_weightMeasured_compare = loadCell_weightMeasured;
-  // }
-  // loadCell_weightMeasured_compare = loadCell_weightMeasured;
-
+  loadCell_weightMeasured = loadCell_measure();
   encoder_measure(40);    // Receives (ENCODER_HOLES)
 
-  // NEW CODE: La lectura del bluetooth se hace cada segundo.
   unsigned long currentTime = millis();
   if (currentTime - previousTime >= 1000) {
+    /*----- SERIAL READING ----- */
+    /* Reads a 5 digit number and splits it into two values: DATACODE (0:1) and DATAVALUE (2:4).
+        Eg: 25600 read as 25 (CODE) and 600 (VALUE) 
+
+      Serial.parseInt returns a Zero after reading, this is due to newline ('\n') or a carriage
+      return ('\r') value at the end on the line.
+      Serial.read kills its 1 second wait, improving code performance.
+      This code may be memory optimized if only Serial.read was used. 
+    */
     if (Serial.available() > 0) {
       dataSerial = Serial.parseInt();
       if (Serial.read() == '\n') {}    // Revisar configuracion del Serial
@@ -234,21 +162,16 @@ void loop() {
           break;
 
         case 20:
-          pump_receivedValue(dataValue);
-          pump_on();
+          loadCell_weightDefined = dataValue;
+          pump_on(125);
           break;
 
         case 21:
           pump_off();
           break;
 
-        case 22:
-          loadCell_weightDefined = dataValue;
-          pump_signal = true;
-          break;
-
         case 30:
-          if (!step2_signal) {   // NEW CODE
+          if (!step2_signal) {
             motor2_goDown();
           }
           step_receivedValue(dataValue);
@@ -269,26 +192,24 @@ void loop() {
       }
     }
 
-    // TEMP_SENSOR.requestTemperatures();
-    // float temp_value = TEMP_SENSOR.getTempCByIndex(0);
-
-    loadCell_weightMeasured = loadCell_measure();
+    TEMP_SENSOR.requestTemperatures();
+    float temp_value = TEMP_SENSOR.getTempCByIndex(0);
 
     Serial.print(loadCell_weightMeasured, 1);
     Serial.print(F(","));
     Serial.print(encoder_rpm);
-    // Serial.print(F(","));
-    // Serial.println(temp_value);
+    Serial.print(F(","));
+    Serial.println(temp_value);
     
     previousTime = currentTime;
   }
 
   // Activation signals for pump and step
   if (pump_signal) {
-    if (loadCell_weightMeasured >= pump_endingValue) {
-      pump_ending(100);   // PWM when getting to set value    // NEW CODE
+    if (loadCell_weightMeasured >= pump_endingValue_signal) {
+      pump_ending(70);   // PWM when getting to set value
 
-      if (loadCell_weightMeasured >= pump_finishValue) {
+      if (loadCell_weightMeasured >= pump_finishValue_signal) {
         pump_off();
       }
     }

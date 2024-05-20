@@ -2,7 +2,7 @@
 /* Loadcell initialization */
 // This should be the average of multiples scales of the same weight
 void loadCell_init() {
-  float loadCell_scale = (- 142.22 - 186.48 - 252.74 - 215.82) / 4;
+  float loadCell_scale = (- 343.97 - 385.45 - 372.74 - 344.98) / 4; 
 
   LOAD_CELL.set_scale(loadCell_scale);
 }
@@ -81,20 +81,21 @@ float loadCell_measure() {
   if (LOAD_CELL.is_ready()) {
     float loadCell_weight = LOAD_CELL.get_units() * -1;
 
-    // if (loadCell_weight < 100) {
-    //   loadCell_calibratedWeight = (loadCell_weight / 1.0034);
-    // } else if (loadCell_weight > 100 && loadCell_weight < 300) {
-    //   loadCell_calibratedWeight = (loadCell_weight - 0.5133) / 0.9972;
-    // } else if (loadCell_weight > 300 && loadCell_weight < 400) {
-    //   loadCell_calibratedWeight = (loadCell_weight + 1.29) / 1.0033;
-    // } else if (loadCell_weight > 400) {
-    //   // loadCell_calibratedWeight = (loadCell_weight + 0.01);
-    //   loadCell_calibratedWeight = (loadCell_weight - 25.365) / 0.9391;
-    // } 
+    if (loadCell_weight < 20) {
+      loadCell_calibratedWeight = (loadCell_weight + 1.22) / 1.3295;
+    } else if (loadCell_weight > 20 && loadCell_weight < 50) {
+      loadCell_calibratedWeight = (loadCell_weight + 4.1167) / 1.4743;
+    } else if (loadCell_weight > 50 && loadCell_weight < 100) {
+      loadCell_calibratedWeight = (loadCell_weight + 11.73) / 1.6266;
+    } else if (loadCell_weight > 100 && loadCell_weight < 200) {
+      loadCell_calibratedWeight = (loadCell_weight + 11.55) / 1.6948;
+    } else if (loadCell_weight > 200) {
+      loadCell_calibratedWeight = (loadCell_weight - 131.08) / 0.9466;
+    } 
     
-    // if (loadCell_weight < 0) {
-    //   loadCell_weight = loadCell_weight * -1.0;
-    // }
+    if (loadCell_weight < 1) {
+      loadCell_weight = 0.0;
+    }
 
     return loadCell_weight;
   }
