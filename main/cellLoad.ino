@@ -2,7 +2,7 @@
 /* Loadcell initialization */
 // This should be the average of multiples scales of the same weight
 void loadCell_init() {
-  float loadCell_scale = (- 343.97 - 385.45 - 372.74 - 344.98) / 4; 
+  float loadCell_scale = (- 343.97 - 385.45 - 372.74 - 344.98)/4; 
 
   LOAD_CELL.set_scale(loadCell_scale);
 }
@@ -76,10 +76,10 @@ void loadCell_tare(const char TARE_QTY) {
 /* Weight measuring */
 // Measuring code with calibration curve
 float loadCell_measure() {
-  float loadCell_calibratedWeight;
+  float loadCell_calibratedWeight, loadCell_weight;
 
   if (LOAD_CELL.is_ready()) {
-    float loadCell_weight = LOAD_CELL.get_units() * -1;
+    loadCell_weight = LOAD_CELL.get_units();
 
     if (loadCell_weight < 20) {
       loadCell_calibratedWeight = (loadCell_weight + 1.22) / 1.3295;

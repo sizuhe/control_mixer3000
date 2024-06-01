@@ -124,6 +124,7 @@ void loop() {
   loadCell_weightMeasured = loadCell_measure();
   encoder_measure(40);    // Receives (ENCODER_HOLES)
 
+  // Bluetooth readings are done each second.
   unsigned long currentTime = millis();
   if (currentTime - previousTime >= 1000) {
     /*----- SERIAL READING ----- */
