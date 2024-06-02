@@ -1,4 +1,4 @@
-`Mixer3000` is a system capable of measuring weight and temperature, pumping and mixing water, and lifting up and down a container. All of these capabilities can be used in real time with an Arduino Nano (or UNO) and respective commands.
+`Mixer3000` is a system capable of measuring weight and temperature, pumping and mixing water, and lifting and lowering a container. All of these capabilities can be used in real time with an Arduino Nano (or UNO) and respective commands.
 
 
 
@@ -34,7 +34,7 @@
 
 
 # Notes
-- `Step motor 1` is used for mixing and `Step motor 2` is used for lifting up and down the container.
+- `Step motor 1` is used for mixing and `Step motor 2` is used for lifting and lowering the container.
 - `HC-05` is connected directly to the serial communications ports of the Arduino. Uploading code into the Arduino will fail when HC-05 is connected.
 - `DS18B20` has a slow refresh rate, so code code slows down when it's activated.
 - `Load cell`, `Pump` and `Temperature` devices are calibrated. However, it's recommended to re-calibrate them.
